@@ -3,14 +3,33 @@ GENE_LEN = 5;
 CROSSRATE = 0.7;
 MUTARATE = 0.001;
 
-TARGET = 26; //待分解
+TARGET = 21; //待分解
 
-var genes,newGenes;
+var genes = new Array;
+var newGenes = new Array;
+	
 var geneTable = ['0','1','2','3','4','5','6','7','8','9','+','-','*','/'];
 
 /*****************************主函数****************************/
 function doIt(){
-	
+	var towGenes = new Array;
+	initGenePools();
+	//alert(typeof(genes[1]));
+	for(var i=0; i<1000; i++){
+		twoGenes = selectMember(genes);
+		//alert(twoGenes);
+		twoGenes = crossover(twoGenes);//alert(twoGenes);
+		twoGenes = mutate(twoGenes);
+		fitness(decode(twoGenes[0]));
+		fitness(decode(twoGenes[1]));
+		newGenes.push(twoGenes[0]);
+		newGenes.push(twoGenes[1]);
+		if(newGenes.length >= POOL_SIZE){
+			genes = newGenes;
+			newGenes = [];			
+			document.getElementById("info").innerHTML += "generation + 1";
+		}
+	}
 }
 
 /*****************************工具函数****************************/
@@ -25,14 +44,15 @@ function initGenePools() {
 	}
 	//newGenes = genes;
 	//alert(parseInt(genes[1], 2));
-	return genes;
 }
 
 //解码基因,输入基因String 输出对应合法的expression的值
 function decode(gene) {
+	//alert("going to decode:  " + gene);
+	//if(typeof(gene) == "object") {alert("going to decode:  " + gene + ". typeof it is :　　" + typeof(gene));}
 	var expression = new String;
 	for (var i=0; i<GENE_LEN*4; i+=4) {
-		var num = parseInt( gene.substr(i, 4), 2 );//二进制编码变十进制的数
+		var num = parseInt( gene.toString().substr(i, 4), 2 );//二进制编码变十进制的数
 		//alert(num);
 		//expression 必须有“数字->算符->数字->算符->...”这种形式 
 		if(expression.length % 2 == 0 && num <=9) expression += geneTable[num];
@@ -45,7 +65,7 @@ function decode(gene) {
 
 //alert(decode("10111010110010001100"));
 
-//计算gene的fitness，输入一条gene（String 类型），输出它的fitness
+//计算gene的fitness，输入一个expression（String 类型），输出它的fitness
 function fitness(expression){
 	var tot = parseInt(expression[0]);
 	var operater = "";	
@@ -61,8 +81,9 @@ function fitness(expression){
 			}
 		}
 	}
+	//document.getElementById("info").innerHTML += "generation + 1; ";
 	//alert("the value of the expression is: " + tot);
-	if(TARGET - tot == 0) {alert("result found!" + "expression is:  " + expression + "result1 is: " + tot)}
+	if(TARGET - tot == 0) {document.getElementById("info").innerHTML +="Expression is:  " + expression;}
 	else if(isNaN(tot)) return 1;  //返回一个很小的fitness
 	else return 1.0/Math.abs(TARGET - tot);  //表达式的值越接近，fitness值越大！！
 }
@@ -115,31 +136,34 @@ function crossover(twoGenes){
 		var node = Math.round(Math.random() * (length -1));
 		var temp = twoGenes[0].slice(node);
 		//twoGenes[1].splice(node,length - node - 1,temp);
-		twoGenes[0] = twoGenes[0].slice(0,node+1) + twoGenes[1].slice(node);
-		twoGenes[1] = twoGenes[1].slice(0,node+1) + temp;
+		twoGenes[0] = twoGenes[0].slice(0,node) + twoGenes[1].slice(node);
+		twoGenes[1] = twoGenes[1].slice(0,node) + temp;
 	}
 	//alert(twoGenes);
 	return twoGenes;
 }
 
 /* var a = ["00000000","11111111"];
-crossover(a); */
+for(var i=0; i<10; i++){
+	a = crossover(a);
+	alert(a);
+}  */
 
 //对两条基因进行突变
 function mutate(twoGenes){
-	var length = twoGenes[0].length;
+	var length = twoGenes[0].toString.length;
 	for(var i=0; i<length; i++) {
 		if(Math.random() <= MUTARATE) {
 			//alert(typeof(twoGenes[0][i]));	
-			if(twoGenes[0][i] == "0") twoGenes[0] = twoGenes[0].substr(0, i) + "1" + twoGenes[0].substr(i+1);
-			else twoGenes[0] = twoGenes[0].substr(0, i) + "0" + twoGenes[0].substr(i+1);
+			if(twoGenes[0][i] == "0") twoGenes[0] = twoGenes[0].toString.substr(0, i) + "1" + twoGenes[0].toString.substr(i+1);
+			else twoGenes[0] = twoGenes[0].toString.substr(0, i) + "0" + twoGenes[0].toString.substr(i+1);
 		}
 	}	
 	for(var i=0; i<length; i++) {
-		if(Math.random() <= 0.8) {
+		if(Math.random() <= MUTARATE) {
 			//alert(typeof(twoGenes[0][i]));	
-			if(twoGenes[1][i] == "0") twoGenes[1] = twoGenes[0].substr(0, i) + "1" + twoGenes[1].substr(i+1);
-			else twoGenes[1] = twoGenes[1].substr(0, i) + "0" + twoGenes[1].substr(i+1);
+			if(twoGenes[1][i] == "0") twoGenes[1] = twoGenes[0].toString.substr(0, i) + "1" + twoGenes[1].toString.substr(i+1);
+			else twoGenes[1] = twoGenes[1].toString.substr(0, i) + "0" + twoGenes[1].toString.substr(i+1);
 		}
 	}
 	return twoGenes;
